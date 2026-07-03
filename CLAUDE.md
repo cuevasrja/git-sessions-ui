@@ -16,6 +16,12 @@ and surfaces correlation problems between them (orphaned `includeIf`, uncorrelat
 
 This project uses Next.js 16, which has breaking changes vs. older training data (APIs, conventions, file structure may differ). Before relying on remembered Next.js behavior, check `node_modules/next/dist/docs/` for the current guide, particularly `01-app/02-guides/static-exports.md` for how this project's static export is configured.
 
+## Project map — search here first
+
+`.claude/project-graph.json` is a token-saving graph index of the whole repo: every source file mapped to its role, key symbols, and relationships, plus the cross-cutting flows (the four-sided IPC contract, the create/edit/delete/keygen flows, the styling and keyboard conventions) and an IPC `commands` lookup table. **Before using Grep/Glob or reading several files to find where something lives, read this graph first** — it usually answers "where is X" in one cheap read. Fall back to Grep/Glob only when the graph misses, and when it does, add what you found so the next search stays cheap.
+
+After adding, moving, or deleting a source file — or changing what a module is responsible for — update `.claude/project-graph.json` and re-baseline with `.claude/skills/project-map/scripts/scan.sh snapshot`. A `PostToolUse` hook (in `.claude/settings.json`) runs `scan.sh check` after edits and injects a reminder when the structure has drifted. The `/project-map` skill automates the query/update/build/check modes.
+
 ## Commands
 
 ```bash
@@ -87,14 +93,25 @@ The whole app is operable without a mouse, emulating a TUI. Global shortcuts (`n
 
 ## Specialized agents
 
-Project-level subagents live in `.claude/agents/`, scoped to this repo's three main work domains:
+Project-level subagents live in `.claude/agents/`, scoped to this repo's work domains:
 
+**Writers (make changes):**
 - **`rust-backend`** — `src-tauri/` changes: Tauri commands, config parsers, session correlation, key generation, backups
 - **`ui-designer`** — `src/components/`, `src/app/globals.css`, layout/visual/keyboard-interaction work
-- **`git-sessions-explorer`** — read-only codebase search/orientation; use before a change to find the right files without burning context re-deriving the architecture
 
-Prefer delegating to the matching agent when a task falls squarely in one of these domains, since each has the relevant conventions preloaded instead of needing to be re-derived from this file.
+**Orientation (read-only search):**
+- **`git-sessions-explorer`** — read-only codebase search/orientation (runs on haiku for speed); use before a change to find the right files without burning context re-deriving the architecture
+
+**Reviewers (guard invariants after a change):**
+- **`ipc-contract-guardian`** — after a command or shared-shape change, keeps the four-sided IPC contract in lockstep (Rust struct+serde ⇄ `invoke_handler!` ⇄ `src/lib/types.ts` ⇄ `src/lib/tauri.ts` real+mock). Since there's no codegen, this drift fails silently at runtime; run it before shipping IPC changes.
+- **`config-parser-reviewer`** — read-only auditor for changes to `gitconfig.rs`/`sshconfig.rs`/`backup.rs`/config mutations; verifies surgical line-range edits (never whole-file reserialization), backup-before-write, and honest `dry_run`, to protect the user's real config files.
+
+Prefer delegating to the matching agent when a task falls squarely in one of these domains, since each has the relevant conventions preloaded instead of needing to be re-derived from this file. A typical flow: `git-sessions-explorer` to scope → `rust-backend`/`ui-designer` to implement → `ipc-contract-guardian`/`config-parser-reviewer` to verify.
 
 ## Keeping this file current
 
 This file drifts as the codebase grows — treat it as documentation that needs updating, not a one-time snapshot. When a change alters something described above (a module's responsibility, the IPC contract, the styling convention, a build command), update the relevant section in the same change rather than leaving it stale for the next session to discover the hard way.
+
+## Git sanitize
+
+- Do not mention any AI agents when making commits or PRs.

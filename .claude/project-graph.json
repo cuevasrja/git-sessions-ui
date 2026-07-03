@@ -1,0 +1,91 @@
+{
+  "schema": "project-graph/v1",
+  "generated": "2026-07-03",
+  "purpose": "Token-saving index of GitSessionManager. READ THIS BEFORE Grep/Glob to locate code. `nodes` map every source file to its role/symbols/edges; `flows` capture the cross-cutting chains that are expensive to rediscover; `commands` is the IPC lookup table. Keep in sync: after adding/moving/removing a file, update this file and run scripts/scan.sh snapshot.",
+  "groups": {
+    "backend": "src-tauri/src — Rust/Tauri backend",
+    "lib": "src/lib — IPC boundary + shared types",
+    "app": "src/app — Next.js App Router shell",
+    "hooks": "src/hooks — React hooks",
+    "layout": "src/components/layout — three-pane chrome",
+    "session": "src/components/session — product-specific primitives",
+    "modals": "src/components/modals — mutation flows",
+    "ui": "src/components/ui — generic primitives",
+    "config": "build/app config"
+  },
+  "nodes": [
+    {"path": "src-tauri/src/main.rs", "role": "Binary entrypoint; delegates to lib.rs run()", "tags": ["backend", "entry"]},
+    {"path": "src-tauri/src/lib.rs", "role": "App setup + Tauri command registration. New commands MUST be added to invoke_handler! or invoke() fails silently at runtime", "symbols": ["run", "invoke_handler!"], "tags": ["backend", "ipc", "registry"], "edges": [{"to": "src-tauri/src/commands.rs", "rel": "registers"}]},
+    {"path": "src-tauri/src/commands.rs", "role": "#[tauri::command] wrappers exposed to the frontend; Result<T,String>; every mutating cmd takes dry_run and returns changed_files", "symbols": ["list_sessions_cmd", "create_session", "edit_session", "delete_session", "generate_ssh_key", "list_existing_keys"], "tags": ["backend", "ipc"], "edges": [{"to": "src-tauri/src/session.rs", "rel": "calls"}, {"to": "src-tauri/src/gitconfig.rs", "rel": "calls"}, {"to": "src-tauri/src/sshconfig.rs", "rel": "calls"}, {"to": "src-tauri/src/keygen.rs", "rel": "calls"}, {"to": "src-tauri/src/backup.rs", "rel": "calls"}]},
+    {"path": "src-tauri/src/session.rs", "role": "Correlation engine: list_sessions() cross-references includeIf bindings, identity files and SSH Host blocks into Session list with health + Problem messages", "symbols": ["list_sessions", "Session", "Problem", "Health"], "tags": ["backend", "domain", "ipc-shape"], "edges": [{"to": "src/lib/types.ts", "rel": "type-mirror"}, {"to": "src-tauri/src/gitconfig.rs", "rel": "reads"}, {"to": "src-tauri/src/sshconfig.rs", "rel": "reads"}, {"to": "src-tauri/src/paths.rs", "rel": "uses"}]},
+    {"path": "src-tauri/src/gitconfig.rs", "role": "Line-based parser/writer for ~/.gitconfig and ~/.gitconfig.<name>; locates a [section \"sub\"] line range and rewrites only it (never reserializes the whole file)", "tags": ["backend", "parser", "mutation"], "edges": [{"to": "src-tauri/src/backup.rs", "rel": "backs-up-before-write"}]},
+    {"path": "src-tauri/src/sshconfig.rs", "role": "Line-based parser/writer for ~/.ssh/config Host blocks; same surgical line-range pattern as gitconfig.rs", "tags": ["backend", "parser", "mutation"], "edges": [{"to": "src-tauri/src/backup.rs", "rel": "backs-up-before-write"}]},
+    {"path": "src-tauri/src/keygen.rs", "role": "ed25519 keypair generation by shelling out to system ssh-keygen (no crypto crate); needs OpenSSH on PATH", "tags": ["backend", "keygen"]},
+    {"path": "src-tauri/src/backup.rs", "role": "backup_file() writes a <file>.bak.<timestamp> sibling before any mutating write; called by every write path", "symbols": ["backup_file"], "tags": ["backend", "safety"]},
+    {"path": "src-tauri/src/paths.rs", "role": "Home-dir resolution + ~-path expand/collapse; paths crossing to TS are always ~-collapsed", "symbols": ["collapse_home", "expand_home"], "tags": ["backend", "paths"]},
+
+    {"path": "src/lib/tauri.ts", "role": "THE single IPC boundary. Each function has a real invoke() branch and an isTauri()-guarded mock branch. New commands need both here + registration in lib.rs", "symbols": ["isTauri", "listSessions", "createSession", "editSession", "deleteSession", "generateSshKey", "listExistingKeys", "copyToClipboard", "closeWindow"], "tags": ["lib", "ipc", "boundary"], "edges": [{"to": "src/lib/types.ts", "rel": "imports"}, {"to": "src/lib/mock-data.ts", "rel": "mock-store"}, {"to": "src-tauri/src/commands.rs", "rel": "invokes"}]},
+    {"path": "src/lib/types.ts", "role": "Hand-written TS mirror of the Rust structs (no codegen). camelCase field names must match serde output exactly", "symbols": ["Provider", "Health", "Problem", "Session", "CreateSessionInput", "EditSessionInput", "MutationResult", "GeneratedKey", "ToastItem"], "tags": ["lib", "types", "ipc-shape"], "edges": [{"to": "src-tauri/src/session.rs", "rel": "type-mirror"}, {"to": "src-tauri/src/commands.rs", "rel": "type-mirror"}]},
+    {"path": "src/lib/mock-data.ts", "role": "MOCK_SESSIONS / MOCK_EXISTING_KEYS backing the browser (pnpm dev) fallback store", "symbols": ["MOCK_SESSIONS", "MOCK_EXISTING_KEYS"], "tags": ["lib", "mock"]},
+    {"path": "src/lib/utils.ts", "role": "Shared UI utility helpers (className merge etc.)", "tags": ["lib", "util"]},
+
+    {"path": "src/app/page.tsx", "role": "Top-level orchestrator: owns session / modal / toast / dry-run state and wires the three panes + modals together", "tags": ["app", "orchestrator"], "edges": [{"to": "src/lib/tauri.ts", "rel": "calls"}, {"to": "src/hooks/use-keyboard-shortcuts.ts", "rel": "uses"}, {"to": "src/hooks/use-toast.ts", "rel": "uses"}]},
+    {"path": "src/app/layout.tsx", "role": "Root layout: fonts, data-theme=dark on <html>, global CSS import", "tags": ["app", "shell"]},
+    {"path": "src/app/globals.css", "role": "ALL design tokens as CSS custom properties in :root (ported from Claude Design system) + Tailwind v4 @theme. Components consume via inline style var(--token)", "tags": ["app", "styling", "tokens"]},
+
+    {"path": "src/hooks/use-keyboard-shortcuts.ts", "role": "Global keyboard shortcuts (n/r/q, j/k/arrows, Enter/l, e, d); suppressed while a modal is open or an input/textarea is focused", "tags": ["hooks", "keyboard"]},
+    {"path": "src/hooks/use-toast.ts", "role": "Toast queue state", "tags": ["hooks", "toast"]},
+
+    {"path": "src/components/layout/title-bar.tsx", "role": "Top title bar of the three-pane chrome", "tags": ["layout"]},
+    {"path": "src/components/layout/sidebar.tsx", "role": "Left pane: session list", "tags": ["layout"], "edges": [{"to": "src/components/session/session-list-item.tsx", "rel": "renders"}]},
+    {"path": "src/components/layout/detail-pane.tsx", "role": "Right pane: selected session detail + warnings", "tags": ["layout"], "edges": [{"to": "src/components/session/warning-item.tsx", "rel": "renders"}]},
+
+    {"path": "src/components/session/session-list-item.tsx", "role": "One row in the sidebar session list (name, provider icon, health)", "tags": ["session"]},
+    {"path": "src/components/session/provider-icon.tsx", "role": "GitHub/GitLab/Bitbucket brand marks from the simple-icons npm package (bundled SVG, offline)", "tags": ["session", "branding"]},
+    {"path": "src/components/session/warning-item.tsx", "role": "Renders a single Problem (health warning) in the detail pane", "tags": ["session"]},
+    {"path": "src/components/session/stepper.tsx", "role": "Multi-step progress indicator used by the create wizard", "tags": ["session"]},
+
+    {"path": "src/components/modals/create-wizard.tsx", "role": "Multi-step create-session flow (identity + SSH key + folder binding); can generate a key inline", "tags": ["modals", "mutation"], "edges": [{"to": "src/lib/tauri.ts", "rel": "calls createSession/generateSshKey"}]},
+    {"path": "src/components/modals/edit-dialog.tsx", "role": "Edit an existing session's identity/SSH fields", "tags": ["modals", "mutation"], "edges": [{"to": "src/lib/tauri.ts", "rel": "calls editSession"}]},
+    {"path": "src/components/modals/delete-dialog.tsx", "role": "Delete a session; t toggles 'also delete SSH key from disk'", "tags": ["modals", "mutation"], "edges": [{"to": "src/lib/tauri.ts", "rel": "calls deleteSession"}]},
+
+    {"path": "src/components/ui/button.tsx", "role": "Button primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/icon-button.tsx", "role": "Icon-only button primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/dialog.tsx", "role": "Modal dialog primitive; owns Esc key", "tags": ["ui"]},
+    {"path": "src/components/ui/alert-dialog.tsx", "role": "Confirm dialog primitive; owns y/n/Esc keys", "tags": ["ui"]},
+    {"path": "src/components/ui/select.tsx", "role": "Select/dropdown primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/switch.tsx", "role": "Toggle switch primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/radio-group.tsx", "role": "Radio group primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/input.tsx", "role": "Text input primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/field.tsx", "role": "Labeled form field wrapper", "tags": ["ui"]},
+    {"path": "src/components/ui/card.tsx", "role": "Card container primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/badge.tsx", "role": "Badge/pill primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/toast.tsx", "role": "Toast presentation primitive", "tags": ["ui"], "edges": [{"to": "src/hooks/use-toast.ts", "rel": "renders-from"}]},
+    {"path": "src/components/ui/tooltip.tsx", "role": "Tooltip primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/kbd.tsx", "role": "Keyboard-key hint primitive", "tags": ["ui"]},
+    {"path": "src/components/ui/circular-progress.tsx", "role": "Circular progress/spinner primitive", "tags": ["ui"]},
+
+    {"path": "next.config.ts", "role": "Next.js config: output:'export' static export (compiles to out/, embedded by Tauri)", "tags": ["config", "build"]},
+    {"path": "src-tauri/tauri.conf.json", "role": "Tauri app config; frontendDist points at out/", "tags": ["config", "tauri"]},
+    {"path": "src-tauri/Cargo.toml", "role": "Rust dependencies + crate config", "tags": ["config", "rust"]},
+    {"path": "package.json", "role": "Frontend deps + scripts (dev/build/lint; tauri via @tauri-apps/cli)", "tags": ["config", "node"]}
+  ],
+  "commands": {
+    "list_sessions_cmd": {"note": "NOTE the _cmd suffix — the only command with one", "rust": "src-tauri/src/commands.rs", "ts": "src/lib/tauri.ts::listSessions"},
+    "create_session":    {"rust": "src-tauri/src/commands.rs", "ts": "src/lib/tauri.ts::createSession", "args": ["input", "dryRun"]},
+    "edit_session":      {"rust": "src-tauri/src/commands.rs", "ts": "src/lib/tauri.ts::editSession", "args": ["input", "dryRun"]},
+    "delete_session":    {"rust": "src-tauri/src/commands.rs", "ts": "src/lib/tauri.ts::deleteSession", "args": ["name", "alias", "keyPath", "deleteKey", "dryRun"]},
+    "generate_ssh_key":  {"rust": "src-tauri/src/commands.rs", "ts": "src/lib/tauri.ts::generateSshKey", "args": ["name", "passphrase", "comment"]},
+    "list_existing_keys":{"rust": "src-tauri/src/commands.rs", "ts": "src/lib/tauri.ts::listExistingKeys"}
+  },
+  "flows": {
+    "ipc-contract (keep all 4 in sync, no codegen)": ["src-tauri/src/session.rs + commands.rs structs (serde rename_all=camelCase)", "src-tauri/src/lib.rs invoke_handler! registration", "src/lib/types.ts TS mirror", "src/lib/tauri.ts invoke() + isTauri() mock branch"],
+    "list/correlate sessions": ["src/app/page.tsx", "src/lib/tauri.ts::listSessions -> invoke('list_sessions_cmd')", "src-tauri/src/commands.rs", "src-tauri/src/session.rs::list_sessions", "gitconfig.rs + sshconfig.rs + paths.rs"],
+    "create session": ["src/components/modals/create-wizard.tsx", "src/lib/tauri.ts::createSession -> invoke('create_session')", "src-tauri/src/commands.rs", "gitconfig.rs + sshconfig.rs writes (backup.rs first)"],
+    "edit session": ["src/components/modals/edit-dialog.tsx", "src/lib/tauri.ts::editSession -> invoke('edit_session')", "src-tauri/src/commands.rs", "gitconfig.rs + sshconfig.rs"],
+    "delete session": ["src/components/modals/delete-dialog.tsx", "src/lib/tauri.ts::deleteSession -> invoke('delete_session')", "src-tauri/src/commands.rs"],
+    "generate ssh key": ["src/components/modals/create-wizard.tsx", "src/lib/tauri.ts::generateSshKey -> invoke('generate_ssh_key')", "src-tauri/src/commands.rs", "src-tauri/src/keygen.rs (ssh-keygen)"],
+    "styling": ["src/app/globals.css tokens (:root CSS vars)", "components consume via inline style={{ ... 'var(--token)' }} — not Tailwind utilities"],
+    "keyboard": ["src/hooks/use-keyboard-shortcuts.ts (global, suppressed in modals/inputs)", "each modal owns its keys: Dialog=Esc, AlertDialog=y/n/Esc, DeleteDialog=+t"]
+  }
+}
