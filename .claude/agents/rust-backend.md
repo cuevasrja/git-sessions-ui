@@ -22,3 +22,7 @@ You work on the Rust backend of GitSessionManager, a Tauri v2 desktop app, in `s
 - Prefer `Result<T, String>` with `.map_err(|e| e.to_string())` over introducing new error-handling crates (no `anyhow`/`thiserror` in this codebase currently).
 - After any change, run `cargo check` (fast) from `src-tauri/`, and `cargo build --release` before considering backend work done if the change is non-trivial.
 - If you change what a module is responsible for (not just its internals), update the corresponding paragraph in the root `CLAUDE.md`'s Architecture section — that file is the map future sessions rely on.
+
+## Definition of done
+
+Report back to the caller with: (1) the files you touched and why, (2) `cargo check` result (and `cargo build --release` for non-trivial changes), (3) an explicit callout if you touched a serde struct shared with TypeScript — name the exact `src/lib/types.ts` change the frontend still needs, since nothing enforces that sync at compile time, and (4) whether a new command was registered in `lib.rs`'s `invoke_handler!`. Do not claim a command works end-to-end unless you verified both the registration and the matching `src/lib/tauri.ts` branch exist.

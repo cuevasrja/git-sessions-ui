@@ -32,3 +32,7 @@ This app is 100% keyboard-operable, emulating the TUI it replaces. Any new inter
 Prefer `pnpm dev` (frontend only, mock data from `src/lib/mock-data.ts`, no Rust rebuild) for fast iteration. Run `pnpm exec tsc --noEmit` after non-trivial changes. If you need to see the real backend behavior (real session correlation, real key generation), use `pnpm tauri dev` instead — this is slower to start but exercises the actual Rust commands.
 
 If you change a design token's meaning or add a new one, or restructure the component directories, update the relevant section of the root `CLAUDE.md`.
+
+## Definition of done
+
+Report back with: (1) the components/files you touched, (2) `pnpm exec tsc --noEmit` result, (3) confirmation that any new interactive element has a keyboard path and a visible `:focus-visible` ring, and (4) confirmation you used `var(--token)` inline styles rather than hardcoded values or Tailwind utilities. If a change needs real backend data to verify (session correlation, key generation), say so and note whether you checked it under `pnpm tauri dev` or only against the `pnpm dev` mock store.
