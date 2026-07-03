@@ -29,12 +29,17 @@ pub struct Session {
     pub problems: Vec<Problem>,
 }
 
+/// Infers a provider from a host or alias (e.g. "gitlab.com",
+/// "gitlab.archlinux.org", "acid.bitbucket.org") by substring, not just exact
+/// match, so self-hosted instances and subdomains are still recognized.
+/// Mirrors `Provider::from_host` in the reference git-session-tui.
 pub fn detect_provider(host: &str) -> String {
-    if host.contains("github.com") {
+    let lower = host.to_ascii_lowercase();
+    if lower.contains("github") {
         "github".into()
-    } else if host.contains("gitlab.com") {
+    } else if lower.contains("gitlab") {
         "gitlab".into()
-    } else if host.contains("bitbucket.org") {
+    } else if lower.contains("bitbucket") {
         "bitbucket".into()
     } else {
         "custom".into()
@@ -71,7 +76,9 @@ pub fn list_sessions() -> Result<Vec<Session>, String> {
     sessions.push(Session {
         id: "default".into(),
         name: "(default)".into(),
-        provider: "custom".into(),
+        // The default identity always resolves to the primary provider
+        // (GitHub) — matches git-session-tui's `is_default` case.
+        provider: "github".into(),
         read_only: true,
         health: "ok".into(),
         email: default_identity.email,
@@ -92,7 +99,7 @@ pub fn list_sessions() -> Result<Vec<Session>, String> {
         let mut problems = Vec::new();
         let identity = gitconfig::read_identity_file(&inc.name);
 
-        let (email, signing_key, alias, host) = match &identity {
+        let (email, signing_key, alias, insteadof_host) = match &identity {
             Some(idf) => (idf.email.clone(), idf.signing_key.clone(), idf.alias.clone(), idf.host.clone()),
             None => {
                 problems.push(Problem {
@@ -105,10 +112,28 @@ pub fn list_sessions() -> Result<Vec<Session>, String> {
             }
         };
 
-        let host = host.unwrap_or_else(|| "host".into());
-        let alias = alias.unwrap_or_else(|| format!("{host}-{}", inc.name));
+        let host = insteadof_host.clone().unwrap_or_else(|| "host".into());
+        // Matches the git-session-tui convention (`NewSessionSpec::host_alias`):
+        // `<name>.<host>`, e.g. "work.github.com".
+        let alias = alias.unwrap_or_else(|| format!("{}.{host}", inc.name));
 
-        let host_block = host_blocks.iter().find(|b| b.alias == alias);
+        let mut host_block = host_blocks.iter().find(|b| b.alias == alias);
+        if host_block.is_none() {
+            // Fallback used by git-session-tui when there's no insteadOf
+            // alias to match on: correlate by IdentityFile name instead —
+            // "id_<name>" exactly, or "id_<name>_*" (e.g. session "arch"
+            // with key "id_arch_gitlab").
+            let expected_key = format!("id_{}", inc.name);
+            let expected_prefix = format!("{expected_key}_");
+            host_block = host_blocks.iter().find(|b| {
+                b.identity_file
+                    .as_deref()
+                    .and_then(|p| paths::expand_tilde(p).file_name().map(|n| n.to_string_lossy().into_owned()))
+                    .map(|n| n == expected_key || n.starts_with(&expected_prefix))
+                    .unwrap_or(false)
+            });
+        }
+
         let (ssh_user, key_path) = match host_block {
             Some(b) => (b.user.clone().unwrap_or_else(|| "git".into()), b.identity_file.clone().unwrap_or_default()),
             None => {
@@ -142,10 +167,23 @@ pub fn list_sessions() -> Result<Vec<Session>, String> {
             "ok"
         };
 
+        // Provider inference order: the insteadOf target host is the most
+        // reliable; the correlated Host block's HostName also usually
+        // carries the provider (e.g. self-hosted "gitlab.archlinux.org");
+        // its alias/pattern is the next best signal. If none of that exists,
+        // default to the primary provider (GitHub) rather than leaving it
+        // blank — mirrors git-session-tui's inference chain in `model.rs`.
+        let provider = insteadof_host
+            .as_deref()
+            .or_else(|| host_block.and_then(|b| b.host_name.as_deref()))
+            .or_else(|| host_block.map(|b| b.alias.as_str()))
+            .map(detect_provider)
+            .unwrap_or_else(|| "github".into());
+
         sessions.push(Session {
             id: inc.name.clone(),
             name: inc.name.clone(),
-            provider: detect_provider(&host),
+            provider,
             read_only: false,
             health: health.into(),
             email,

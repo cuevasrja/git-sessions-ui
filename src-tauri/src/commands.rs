@@ -45,7 +45,8 @@ pub fn create_session(input: CreateSessionInput, dry_run: bool) -> Result<Mutati
         return Err("Session name cannot be empty".into());
     }
     let host = session::provider_host(&input.provider, &input.host);
-    let alias = format!("{host}-{}", input.name);
+    // Matches the git-session-tui convention: `<name>.<host>`.
+    let alias = format!("{}.{host}", input.name);
     let gitdir = if input.gitdir.trim().is_empty() { format!("~/{}/", input.name) } else { input.gitdir.clone() };
 
     let changed_files = vec![

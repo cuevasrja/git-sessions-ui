@@ -29,7 +29,8 @@ export async function listSessions(): Promise<Session[]> {
 export async function createSession(input: CreateSessionInput, dryRun: boolean): Promise<MutationResult> {
   if (!isTauri()) {
     const host = { github: "github.com", gitlab: "gitlab.com", bitbucket: "bitbucket.org", custom: input.host || "host" }[input.provider];
-    const alias = `${host}-${input.name}`;
+    // Matches the git-session-tui convention: `<name>.<host>`.
+    const alias = `${input.name}.${host}`;
     const session: Session = {
       id: input.name,
       name: input.name,
@@ -73,7 +74,7 @@ export async function deleteSession(name: string, alias: string, keyPath: string
 export async function generateSshKey(name: string, passphrase: string, comment: string): Promise<GeneratedKey> {
   if (!isTauri()) {
     await new Promise((r) => setTimeout(r, 900));
-    const privatePath = `~/.ssh/id_ed25519_${name}`;
+    const privatePath = `~/.ssh/id_${name}`;
     mockKeys = [...mockKeys, privatePath];
     return {
       privatePath,

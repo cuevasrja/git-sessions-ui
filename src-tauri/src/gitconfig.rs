@@ -228,14 +228,18 @@ pub fn read_identity_file(name: &str) -> Option<IdentityFile> {
             signing_key = get_value(&lines, s, "signingKey").unwrap_or(signing_key.clone());
         }
         if s.name.eq_ignore_ascii_case("url") {
+            // The trailing `:` is optional here — `[url "git@alias:"]` and
+            // `[url "git@alias"]` both appear in the wild (e.g. the
+            // reference git-session-tui writes it without the colon), and
+            // both are valid, functionally-equivalent insteadOf targets.
             if let Some(sub) = &s.subsection {
-                if let Some(a) = sub.strip_prefix("git@").and_then(|x| x.strip_suffix(':')) {
-                    alias = Some(a.to_string());
+                if let Some(a) = sub.strip_prefix("git@") {
+                    alias = Some(a.trim_end_matches(':').to_string());
                 }
             }
             if let Some(instead) = get_value(&lines, s, "insteadOf") {
-                if let Some(h) = instead.strip_prefix("git@").and_then(|x| x.strip_suffix(':')) {
-                    host = Some(h.to_string());
+                if let Some(h) = instead.strip_prefix("git@") {
+                    host = Some(h.trim_end_matches(':').to_string());
                 }
             }
         }
@@ -257,8 +261,8 @@ pub fn write_identity_file(name: &str, email: &str, signing_key: &str, alias: &s
         content.push_str(&format!("\tsigningKey = {signing_key}\n"));
     }
     content.push('\n');
-    content.push_str(&format!("[url \"git@{alias}:\"]\n"));
-    content.push_str(&format!("\tinsteadOf = git@{host}:\n"));
+    content.push_str(&format!("[url \"git@{alias}\"]\n"));
+    content.push_str(&format!("\tinsteadOf = git@{host}\n"));
 
     fs::write(&path, content).map_err(|e| e.to_string())
 }

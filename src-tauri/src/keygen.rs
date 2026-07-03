@@ -11,13 +11,15 @@ pub struct GeneratedKey {
 }
 
 /// Shells out to the system `ssh-keygen` to generate a fresh ed25519 keypair
-/// at `~/.ssh/id_ed25519_<name>`. Requires an OpenSSH client on PATH — bundled
-/// by default on macOS, Linux, and Windows 10 1803+.
+/// at `~/.ssh/id_<name>` — matches the git-session-tui naming convention
+/// (`NewSessionSpec::default_identity_file`), which the key-filename
+/// correlation fallback in `session.rs` also relies on. Requires an OpenSSH
+/// client on PATH — bundled by default on macOS, Linux, and Windows 10 1803+.
 pub fn generate_ed25519_key(name: &str, passphrase: &str, comment: &str) -> Result<GeneratedKey, String> {
     let dir = paths::ssh_dir();
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    let private = dir.join(format!("id_ed25519_{name}"));
-    let public = dir.join(format!("id_ed25519_{name}.pub"));
+    let private = dir.join(format!("id_{name}"));
+    let public = dir.join(format!("id_{name}.pub"));
 
     if private.exists() {
         return Err(format!("{} already exists", paths::collapse_home(&private)));

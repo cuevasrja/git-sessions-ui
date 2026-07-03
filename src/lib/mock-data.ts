@@ -28,9 +28,9 @@ export const MOCK_SESSIONS: Session[] = [
     signingKey: "3AA5C34371567BD2",
     gitdir: "~/work/",
     host: "github.com",
-    alias: "github.com-work",
+    alias: "work.github.com",
     sshUser: "git",
-    keyPath: "~/.ssh/id_ed25519_work",
+    keyPath: "~/.ssh/id_work",
     problems: [],
   },
   {
@@ -43,9 +43,9 @@ export const MOCK_SESSIONS: Session[] = [
     signingKey: "",
     gitdir: "~/dev/",
     host: "github.com",
-    alias: "github.com-personal",
+    alias: "personal.github.com",
     sshUser: "git",
-    keyPath: "~/.ssh/id_ed25519_personal",
+    keyPath: "~/.ssh/id_personal",
     problems: [],
   },
   {
@@ -58,9 +58,9 @@ export const MOCK_SESSIONS: Session[] = [
     signingKey: "",
     gitdir: "~/oss/",
     host: "gitlab.com",
-    alias: "gitlab.com-oss",
+    alias: "oss.gitlab.com",
     sshUser: "git",
-    keyPath: "~/.ssh/id_ed25519_oss",
+    keyPath: "~/.ssh/id_oss",
     problems: [
       {
         tone: "warn",
@@ -80,24 +80,24 @@ export const MOCK_SESSIONS: Session[] = [
     signingKey: "",
     gitdir: "~/clients/x/",
     host: "bitbucket.org",
-    alias: "bitbucket.org-client-x",
+    alias: "client-x.bitbucket.org",
     sshUser: "git",
-    keyPath: "~/.ssh/id_ed25519_client",
+    keyPath: "~/.ssh/id_client-x",
     problems: [
       {
         tone: "error",
         title: "IdentityFile missing on disk",
-        detail: "~/.ssh/id_ed25519_client",
+        detail: "~/.ssh/id_client-x",
         suggestion: "Generate a new key or point IdentityFile at an existing id_*.",
       },
       {
         tone: "warn",
         title: "Host block not correlated to any identity",
-        detail: "Host bitbucket.org-client-x in ~/.ssh/config",
+        detail: "Host client-x.bitbucket.org in ~/.ssh/config",
         suggestion: "Add a matching [url] insteadOf, or delete the stale Host block.",
       },
     ],
   },
 ];
 
-export const MOCK_EXISTING_KEYS = ["~/.ssh/id_ed25519", "~/.ssh/id_ed25519_work", "~/.ssh/id_ed25519_personal", "~/.ssh/id_rsa"];
+export const MOCK_EXISTING_KEYS = ["~/.ssh/id_ed25519", "~/.ssh/id_work", "~/.ssh/id_personal", "~/.ssh/id_rsa"];

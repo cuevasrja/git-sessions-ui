@@ -7,6 +7,7 @@ use crate::paths;
 #[derive(Debug, Clone)]
 pub struct HostBlock {
     pub alias: String,
+    pub host_name: Option<String>,
     pub user: Option<String>,
     pub identity_file: Option<String>,
     pub start_line: usize,
@@ -24,6 +25,7 @@ pub fn parse_host_blocks(content: &str) -> Vec<HostBlock> {
         if let Some((alias, start)) = current.take() {
             blocks.push(HostBlock {
                 alias,
+                host_name: props.remove("hostname"),
                 user: props.remove("user"),
                 identity_file: props.remove("identityfile"),
                 start_line: start,
