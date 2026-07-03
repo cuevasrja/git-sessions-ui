@@ -1,0 +1,287 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Git Sessions — design tokens
+   Dark-first, GitHub-Primer-inspired. Ported from the Git
+   Sessions Design System (claude.ai/design). Components consume
+   these as CSS custom properties directly, matching the source
+   design system's own authoring style.
+   ============================================================ */
+
+:root {
+  /* --- Neutral scale --- */
+  --gray-0: #f0f6fc;
+  --gray-1: #e6edf3;
+  --gray-2: #c9d1d9;
+  --gray-3: #b1bac4;
+  --gray-4: #8b949e;
+  --gray-5: #6e7681;
+  --gray-6: #484f58;
+  --gray-7: #30363d;
+  --gray-8: #21262d;
+  --gray-9: #161b22;
+  --gray-10: #0d1117;
+  --gray-11: #010409;
+
+  /* --- Surfaces --- */
+  --canvas: #0d1117;
+  --canvas-inset: #010409;
+  --surface: #161b22;
+  --surface-raised: #21262d;
+  --surface-overlay: #1c2128;
+
+  /* --- Borders --- */
+  --border: #30363d;
+  --border-muted: #21262d;
+  --border-strong: #484f58;
+
+  /* --- Text --- */
+  --text: #e6edf3;
+  --text-bright: #f0f6fc;
+  --text-muted: #8b949e;
+  --text-subtle: #6e7681;
+  --text-on-emphasis: #ffffff;
+
+  /* --- Brand: git green --- */
+  --green-emphasis: #238636;
+  --green-emphasis-hover: #2ea043;
+  --green-emphasis-active: #1f7a33;
+  --primary: var(--green-emphasis);
+  --primary-hover: var(--green-emphasis-hover);
+  --primary-active: var(--green-emphasis-active);
+  --primary-fg: var(--text-on-emphasis);
+
+  /* --- Health / semantic system --- */
+  --green-fg: #3fb950;
+  --green-muted: rgba(63, 185, 80, 0.15);
+  --green-subtle: rgba(63, 185, 80, 0.09);
+  --green-border: rgba(63, 185, 80, 0.4);
+
+  --amber-fg: #d29922;
+  --amber-muted: rgba(210, 153, 34, 0.15);
+  --amber-subtle: rgba(210, 153, 34, 0.09);
+  --amber-border: rgba(210, 153, 34, 0.4);
+
+  --red-fg: #f85149;
+  --red-muted: rgba(248, 81, 73, 0.15);
+  --red-subtle: rgba(248, 81, 73, 0.09);
+  --red-border: rgba(248, 81, 73, 0.4);
+  --red-emphasis: #da3633;
+  --red-emphasis-hover: #b62324;
+
+  --blue-fg: #58a6ff;
+  --blue-muted: rgba(88, 166, 255, 0.15);
+  --blue-subtle: rgba(88, 166, 255, 0.1);
+  --blue-border: rgba(88, 166, 255, 0.4);
+
+  /* Semantic aliases used by session/health components */
+  --health-ok: var(--green-fg);
+  --health-warn: var(--amber-fg);
+  --health-error: var(--red-fg);
+  --selected-bg: var(--blue-subtle);
+
+  --focus-ring: #58a6ff;
+
+  --hover-bg: rgba(177, 186, 196, 0.08);
+  --active-bg: rgba(177, 186, 196, 0.12);
+
+  --danger: var(--red-emphasis);
+  --danger-hover: var(--red-emphasis-hover);
+  --danger-active: #8b1a1a;
+
+  --provider-github: #f0f6fc;
+  --provider-gitlab: #fc6d26;
+  --provider-bitbucket: #2684ff;
+  --provider-custom: #8b949e;
+
+  --diff-add-bg: var(--green-subtle);
+  --diff-add-fg: var(--green-fg);
+  --diff-remove-bg: var(--red-subtle);
+  --diff-remove-fg: var(--red-fg);
+  --code-key: var(--blue-fg);
+  --code-string: var(--green-fg);
+  --code-comment: var(--text-subtle);
+
+  /* --- Typography --- */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.4;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  --tracking-tight: -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-caps: 0.06em;
+
+  /* --- Spacing --- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --control-h-sm: 26px;
+  --control-h-md: 32px;
+  --control-h-lg: 38px;
+
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 40;
+  --z-overlay: 50;
+  --z-dialog: 60;
+  --z-tooltip: 70;
+  --z-toast: 80;
+
+  /* --- Radius --- */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  --border-width: 1px;
+  --border-width-thick: 2px;
+
+  /* --- Shadows / motion --- */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px rgba(1, 4, 9, 0.4), 0 0 0 1px rgba(1, 4, 9, 0.2);
+  --shadow-md: 0 8px 24px rgba(1, 4, 9, 0.5);
+  --shadow-lg: 0 16px 48px rgba(1, 4, 9, 0.65);
+  --shadow-inset: inset 0 1px 2px rgba(1, 4, 9, 0.5);
+
+  --ring: 0 0 0 2px var(--canvas), 0 0 0 4px var(--focus-ring);
+  --ring-tight: 0 0 0 2px var(--focus-ring);
+
+  --glow-ok: 0 0 0 1px var(--green-border);
+  --glow-warn: 0 0 0 1px var(--amber-border);
+  --glow-error: 0 0 0 1px var(--red-border);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 100ms;
+  --duration-base: 150ms;
+  --duration-slow: 240ms;
+
+  /* --- App chrome --- */
+  --titlebar-height: 48px;
+  --sidebar-width: 280px;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-normal);
+}
+
+::selection {
+  background: var(--blue-muted);
+  color: var(--text-bright);
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-6) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--gray-6);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: var(--radius-full);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-5);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-tight);
+  border-radius: var(--radius-sm);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+@keyframes gs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes gs-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes gs-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@keyframes gs-tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+}
