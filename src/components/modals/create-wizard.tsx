@@ -8,7 +8,6 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { RadioGroup } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { CodeWell } from "@/components/ui/card";
