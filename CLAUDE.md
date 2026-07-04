@@ -22,9 +22,20 @@ This project uses Next.js 16, which has breaking changes vs. older training data
 
 After adding, moving, or deleting a source file — or changing what a module is responsible for — update `.claude/project-graph.json` and re-baseline with `.claude/skills/project-map/scripts/scan.sh snapshot`. A `PostToolUse` hook (in `.claude/settings.json`) runs `scan.sh check` after edits and injects a reminder when the structure has drifted. The `/project-map` skill automates the query/update/build/check modes.
 
+## Node version
+
+`.nvmrc` pins the Node version (currently 24, matching the LTS used in
+`.github/workflows/release.yml`). Run `nvm use` before any `pnpm`/`node`
+command — don't rely on whatever Node happens to already be active in the
+shell, since a mismatched version can produce subtly different lint/build
+behavior than CI.
+
 ## Commands
 
 ```bash
+# Switch to the Node version pinned in .nvmrc — run this first
+nvm use
+
 # Frontend only, in a browser, with mock session data (no Rust/Tauri build needed) — fastest loop for UI work
 pnpm dev
 

@@ -50,9 +50,16 @@ snapshot`. The `/project-map` skill (Claude Code) automates query/update.
 - **Keyboard-first.** Every interactive element needs a keyboard path; global
   shortcuts live in `src/hooks/use-keyboard-shortcuts.ts`.
 
+## Node version
+
+`.nvmrc` pins the Node version (currently 24, matching the LTS used in the
+release workflow). Run `nvm use` before any `pnpm`/`node` command so local
+runs match CI — don't rely on whatever Node happens to be active in the shell.
+
 ## Common commands
 
 ```bash
+nvm use                      # switch to the Node version pinned in .nvmrc
 pnpm dev                     # frontend + mock data, browser (fast UI loop)
 pnpm tauri dev               # full app with real Rust backend
 pnpm exec tsc --noEmit       # type-check
