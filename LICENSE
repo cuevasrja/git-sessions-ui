@@ -1,3 +1,33 @@
+GitSessionManager
+Copyright (C) 2026 Juan Cuevas (cuevasrja)
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at your
+option) any later version, subject to the additional term below, which is
+added pursuant to Section 7(b) of the GNU Affero General Public License and
+is considered part of this License for all purposes under that License.
+
+ADDITIONAL TERM — ATTRIBUTION REQUIREMENT (AGPLv3 Section 7(b))
+
+Any person who conveys a modified version of this Program, forks this
+repository, or otherwise distributes a work based on it — in source or
+object code form — must retain and prominently display a clear and
+conspicuous notice identifying Juan Cuevas (cuevasrja) as the original
+author and https://github.com/cuevasrja/git-sessions-ui as the base project
+from which the work is derived. This notice must appear in at least one of:
+the work's README or equivalent top-level documentation, its LICENSE or
+NOTICE file, or an "About"/credits screen if the work has a user interface.
+This attribution requirement may not be removed, obscured, or diminished in
+derivative works, regardless of how substantially the work has been
+modified, and applies in addition to (not in place of) the copyright and
+license notices already required by Sections 4 and 5 of this License.
+
+The full text of the GNU Affero General Public License, version 3, follows
+unmodified below.
+
+--------------------------------------------------------------------------
+
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
