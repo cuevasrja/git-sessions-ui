@@ -25,5 +25,5 @@ tauri = { version = "2.11.3", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-dialog = "2"
-dirs = "5"
+dirs = "6"
 chrono = "0.4"
