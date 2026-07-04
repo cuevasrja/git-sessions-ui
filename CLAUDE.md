@@ -50,7 +50,11 @@ cd src-tauri && cargo build --release
 
 There is no test suite configured in this repo (no `test` script, no Jest/Vitest config).
 
-`pnpm tauri build` produces installers only for the OS you build on (`.deb`/`.AppImage`/`.rpm` on Linux, `.dmg`/`.app` on macOS, `.msi`/`.exe` on Windows) — cross-platform installers require building on each target OS or via CI (e.g. `tauri-action`).
+`pnpm tauri build` produces installers only for the OS you build on (`.deb`/`.AppImage`/`.rpm` on Linux, `.dmg`/`.app` on macOS, `.msi`/`.exe` on Windows) — cross-platform builds happen in CI instead (see Releasing below).
+
+## Releasing
+
+Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`: a version-match check (tag vs. `package.json`/`tauri.conf.json`), then lint/typecheck/`cargo check`, then a matrix build (`tauri-apps/tauri-action`) across Linux/Windows/macOS that attaches installers to a draft GitHub Release. Builds are unsigned — no code signing or notarization configured yet. Full step-by-step procedure is in the README's "Releasing" section.
 
 ## Architecture
 
