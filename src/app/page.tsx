@@ -33,11 +33,18 @@ export default function Home() {
   }, []);
 
   React.useEffect(() => {
-    load().then((list) => {
+    let cancelled = false;
+    listSessions().then((list) => {
+      if (cancelled) return;
+      setSessions(list);
+      setLoaded(true);
       const firstReal = list.find((s) => s.id !== "default");
       setSelectedId(firstReal?.id ?? list[0]?.id ?? "default");
     });
-  }, [load]);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const selected = sessions.find((s) => s.id === selectedId);
 

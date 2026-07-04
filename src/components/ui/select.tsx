@@ -34,9 +34,15 @@ export function Select({ value, onChange, options, placeholder = "Select…", di
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  React.useEffect(() => {
+  // Recompute the highlighted option whenever the dropdown opens (or its
+  // options/value change while open). Computed synchronously during render
+  // (instead of in an effect) per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
+  const [prev, setPrev] = React.useState({ open, options, value });
+  if (open !== prev.open || options !== prev.options || value !== prev.value) {
+    setPrev({ open, options, value });
     if (open) setHighlight(Math.max(0, options.findIndex((o) => o.value === value)));
-  }, [open, options, value]);
+  }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (!open) {

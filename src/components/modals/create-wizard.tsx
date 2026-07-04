@@ -64,7 +64,12 @@ export function CreateWizard({ open, dryRun, onClose, onCreate, onCopyPublicKey 
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((s) => ({ ...s, [k]: v }));
 
-  React.useEffect(() => {
+  // Reset the wizard's local state whenever it transitions from closed to
+  // open. Computed synchronously during render (instead of in an effect) per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
+  const [prevOpen, setPrevOpen] = React.useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setStep(0);
       setF(INITIAL_FORM);
@@ -72,6 +77,11 @@ export function CreateWizard({ open, dryRun, onClose, onCreate, onCopyPublicKey 
       setGenPct(0);
       setGeneratedKey(null);
       setGenError(null);
+    }
+  }
+
+  React.useEffect(() => {
+    if (open) {
       listExistingKeys().then((keys) => {
         setExistingKeys(keys);
         setF((s) => ({ ...s, existingKey: keys[0] ?? "" }));

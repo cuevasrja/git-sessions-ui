@@ -54,9 +54,15 @@ export function EditDialog({ open, dryRun, session, onClose, onSave }: EditDialo
   const [f, setF] = React.useState<Session | undefined>(session);
   const [existingKeys, setExistingKeys] = React.useState<string[]>([]);
 
-  React.useEffect(() => {
+  // Sync local form state from the `session` prop whenever the dialog opens
+  // (or the underlying session changes while open). Computed synchronously
+  // during render (instead of in an effect) per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
+  const [prev, setPrev] = React.useState({ open, session });
+  if (open !== prev.open || session !== prev.session) {
+    setPrev({ open, session });
     if (open && session) setF(session);
-  }, [open, session]);
+  }
 
   React.useEffect(() => {
     if (open) listExistingKeys().then(setExistingKeys);

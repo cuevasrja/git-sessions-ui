@@ -21,9 +21,14 @@ function F({ children }: { children: React.ReactNode }) {
 export function DeleteDialog({ open, dryRun, session, onCancel, onConfirm }: DeleteDialogProps) {
   const [delKey, setDelKey] = React.useState(false);
 
-  React.useEffect(() => {
+  // Reset "delete key" toggle whenever the dialog transitions from closed to
+  // open. Computed synchronously during render (instead of in an effect) per
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes.
+  const [prevOpen, setPrevOpen] = React.useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setDelKey(false);
-  }, [open]);
+  }
 
   React.useEffect(() => {
     if (!open) return;
