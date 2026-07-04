@@ -10,7 +10,6 @@ permissions:
 
 env:
   PNPM_VERSION: "10"
-  NODE_VERSION: "24"
 
 jobs:
   check-version:
@@ -45,7 +44,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: ".nvmrc"
           cache: "pnpm"
 
       - name: Install frontend dependencies
@@ -97,7 +96,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: ".nvmrc"
           cache: "pnpm"
 
       - name: Install Rust toolchain
